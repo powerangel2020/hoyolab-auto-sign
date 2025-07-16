@@ -39,25 +39,18 @@ const headerDict = {
     'Referer': 'https://act.hoyolab.com/',
     'Origin': 'https://act.hoyolab.com',
   },
-  Genshin: {
-
-  },
-  Star_Rail: {
-
-  },
-  Honkai_3: {
-
-  },
-  Tears_of_Themis: {
-
-  },
+  Genshin: {},
+  Star_Rail: {},
+  Honkai_3: {},
+  Tears_of_Themis: {},
   Zenless_Zone_Zero: {
     'x-rpc-signgame': 'zzz',
   }
-}
-async function main(){
+};
+
+async function main() {
   const messages = await Promise.all(profiles.map(autoSignFunction));
-  const hoyolabResp = `${messages.join('\n\n')}`
+  const hoyolabResp = `${messages.join('\n\n')}`;
 
   if (telegram_notify && telegramBotToken && myTelegramID) {
     postWebhook(hoyolabResp);
@@ -83,38 +76,42 @@ function autoSignFunction({
 
   const options = {
     method: 'POST',
+    headers: {},
     muteHttpExceptions: true,
   };
 
   let response = `${accountName} 的自動簽到作業已完成`;
 
-  var sleepTime = 0
-  const httpResponses = []
-  for (const url of urls) {
+  var sleepTime = 0;
+  const httpResponses = [];
+  for (const { url, headers } of urlsnheaders) {
+    options.headers = headers;
     Utilities.sleep(sleepTime);
     httpResponses.push(UrlFetchApp.fetch(url, options));
     sleepTime = 1000;
-}
+  }
+
   for (const [i, hoyolabResponse] of httpResponses.entries()) {
     const responseJson = JSON.parse(hoyolabResponse);
     const checkInResult = responseJson.message;
     const enGameName = Object.keys(urlDict).find(key => urlDict[key] === urlsnheaders[i].url);
+    let gameName;
     switch (enGameName) {
       case 'Genshin':
-      gameName = '原神';
-      break;
+        gameName = '原神';
+        break;
       case 'Star_Rail':
-      gameName = '星穹鐵道';
-      break;
+        gameName = '星穹鐵道';
+        break;
       case 'Honkai_3':
-      gameName = '崩壞3rd';
-      break;
+        gameName = '崩壞3rd';
+        break;
       case 'Tears_of_Themis':
-      gameName = '未定事件簿';
-      break;
+        gameName = '未定事件簿';
+        break;
       case 'Zenless_Zone_Zero':
-      gameName = '絕區零';
-      break;
+        gameName = '絕區零';
+        break;
     }
     const bannedCheck = responseJson.data?.gt_result?.is_risk;
     if (bannedCheck) {
